@@ -95,10 +95,9 @@ const Index = () => {
 
   const playNote = (step) => {
     const scaleIntervals = scales[selectedScale];
-    let noteIndex = notes.indexOf(rootNote);
-    for (let i = 0; i < Math.abs(step); i++) {
-      noteIndex = (noteIndex + scaleIntervals[i % scaleIntervals.length] * Math.sign(step) + notes.length) % notes.length;
-    }
+    let noteIndex = notes.indexOf(lastNote);
+    const intervalIndex = step > 0 ? step - 1 : (scaleIntervals.length + step) % scaleIntervals.length;
+    noteIndex = (noteIndex + scaleIntervals[intervalIndex] * Math.sign(step) + notes.length) % notes.length;
     const note = notes[noteIndex];
     setLastNote(note);
     toast({
