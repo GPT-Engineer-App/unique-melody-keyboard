@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Box, Button, Container, Heading, Select, SimpleGrid, VStack, RadioGroup, Radio, Stack, useToast } from "@chakra-ui/react";
 
 const scales = {
@@ -14,6 +14,33 @@ const scales = {
 const notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
 const Index = () => {
+  const playSound = (note) => {
+    console.log(`Sound Engine: Note ${note} played`);
+  };
+
+  const handleKeyPress = useCallback((event) => {
+    const keyMap = {
+      a: -4,
+      s: -3,
+      d: -2,
+      f: -1,
+      g: 0,
+      h: 1,
+      j: 2,
+      k: 3,
+      l: 4,
+    };
+    if (keyMap[event.key] !== undefined) {
+      playNote(keyMap[event.key]);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyPress);
+    return () => {
+      window.removeEventListener("keydown", handleKeyPress);
+    };
+  }, [handleKeyPress]);
   const [selectedScale, setSelectedScale] = useState("Major");
   const [rootNote, setRootNote] = useState("C");
   const [lastNote, setLastNote] = useState(rootNote);
@@ -39,14 +66,17 @@ const Index = () => {
   const playNote = (noteIndex) => {
     const note = notes[(notes.indexOf(lastNote) + noteIndex + 12) % 12];
     setLastNote(note);
-    // This is where you would implement the logic to play a note using MIDI or the sound engine
-    toast({
-      title: `Note ${note} played`,
-      description: `Output: ${outputType}`,
-      status: "info",
-      duration: 2000,
-      isClosable: true,
-    });
+    if (outputType === "SoundEngine") {
+      playSound(note);
+    } else {
+      toast({
+        title: `Note ${note} played`,
+        description: `Output: ${outputType}`,
+        status: "info",
+        duration: 2000,
+        isClosable: true,
+      });
+    }
   };
 
   return (
