@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Box, Button, Container, Heading, Select, SimpleGrid, VStack, RadioGroup, Radio, Stack, useToast } from "@chakra-ui/react";
 
 const scales = {
@@ -11,10 +11,22 @@ const scales = {
   MelodicMinor: [2, 1, 2, 2, 2, 2, 1],
 };
 
+const notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+
 const Index = () => {
   const [selectedScale, setSelectedScale] = useState("Major");
+  const [rootNote, setRootNote] = useState("C");
+  const [lastNote, setLastNote] = useState(rootNote);
   const [outputType, setOutputType] = useState("MIDI");
   const toast = useToast();
+
+  useEffect(() => {
+    setLastNote(rootNote);
+  }, [rootNote]);
+
+  const handleRootNoteChange = (event) => {
+    setRootNote(event.target.value);
+  };
 
   const handleScaleChange = (event) => {
     setSelectedScale(event.target.value);
@@ -24,7 +36,9 @@ const Index = () => {
     setOutputType(value);
   };
 
-  const playNote = (note) => {
+  const playNote = (noteIndex) => {
+    const note = notes[(notes.indexOf(lastNote) + noteIndex + 12) % 12];
+    setLastNote(note);
     // This is where you would implement the logic to play a note using MIDI or the sound engine
     toast({
       title: `Note ${note} played`,
@@ -40,7 +54,15 @@ const Index = () => {
       <VStack spacing={6}>
         <Heading>Unique Musical Keyboard</Heading>
 
-        <Select value={selectedScale} onChange={handleScaleChange}>
+        <Select placeholder="Select root note" value={rootNote} onChange={handleRootNoteChange} mb={4}>
+          {notes.map((note) => (
+            <option key={note} value={note}>
+              {note}
+            </option>
+          ))}
+        </Select>
+
+        <Select placeholder="Select scale" value={selectedScale} onChange={handleScaleChange}>
           {Object.keys(scales).map((scale) => (
             <option key={scale} value={scale}>
               {scale}
@@ -55,7 +77,11 @@ const Index = () => {
           </Stack>
         </RadioGroup>
 
-        <SimpleGrid columns={9} spacing={2}>
+        <Box border="1px" borderColor="gray.200" p={3} mb={4} w="full" textAlign="center">
+          Last Played Note: {lastNote}
+        </Box>
+
+        <SimpleGrid columns={9} spacing={2} mb={4}>
           {Array.from({ length: 9 }, (_, i) => i - 4).map((note) => (
             <Button key={note} onClick={() => playNote(note)}>
               {note >= 0 ? `+${note}` : note}
