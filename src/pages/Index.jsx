@@ -93,15 +93,13 @@ const Index = () => {
     setOutputType(value);
   };
 
-  const playNote = (interval) => {
+  const playNote = (step) => {
     const scaleIntervals = scales[selectedScale];
-    let accumulatedInterval = 0;
-    for (let i = 0; i < Math.abs(interval); i++) {
-      accumulatedInterval += scaleIntervals[i % scaleIntervals.length] * (interval < 0 ? -1 : 1);
+    let noteIndex = notes.indexOf(rootNote);
+    for (let i = 0; i < Math.abs(step); i++) {
+      noteIndex = (noteIndex + scaleIntervals[i % scaleIntervals.length] * Math.sign(step) + notes.length) % notes.length;
     }
-    const lastNoteIndex = notes.indexOf(lastNote);
-    const newNoteIndex = (lastNoteIndex + accumulatedInterval + 12 * 7) % 12;
-    const note = notes[newNoteIndex];
+    const note = notes[noteIndex];
     setLastNote(note);
     toast({
       title: `Note ${note} played`,
