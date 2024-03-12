@@ -94,10 +94,13 @@ const Index = () => {
   };
 
   const playNote = (step) => {
-    const scaleIntervals = scales[selectedScale];
     let noteIndex = notes.indexOf(lastNote);
-    const intervalIndex = step > 0 ? step - 1 : (scaleIntervals.length + step) % scaleIntervals.length;
-    noteIndex = (noteIndex + scaleIntervals[intervalIndex] * Math.sign(step) + notes.length) % notes.length;
+    let scaleIndex = 0;
+    step = Math.sign(step) === 1 ? step : scales[selectedScale].length + step;
+    for (let i = 0; i < step; i++) {
+      noteIndex = (noteIndex + scales[selectedScale][scaleIndex]) % notes.length;
+      scaleIndex = (scaleIndex + 1) % scales[selectedScale].length;
+    }
     const note = notes[noteIndex];
     setLastNote(note);
     toast({
