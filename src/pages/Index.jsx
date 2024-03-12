@@ -14,8 +14,38 @@ const scales = {
 const notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
 const Index = () => {
+  let midiAccess = null;
+  let midiOutput = null;
+
+  const getMIDIAccess = async () => {
+    if (navigator.requestMIDIAccess) {
+      try {
+        midiAccess = await navigator.requestMIDIAccess({ sysex: false });
+        midiOutput = midiAccess.outputs.values().next().value;
+      } catch (error) {
+        console.error("MIDI Access not supported", error);
+      }
+    } else {
+      console.error("Web MIDI API not supported");
+    }
+  };
+
+  useEffect(() => {
+    getMIDIAccess();
+  }, []);
+
+  const sendMIDIMessage = (note) => {
+    const noteOnMessage = [0x90, note, 0x7f];
+    const noteOffMessage = [0x80, note, 0x00];
+    if (midiOutput) {
+      midiOutput.send(noteOnMessage);
+      midiOutput.send(noteOffMessage, window.performance.now() + 1000.0);
+    }
+  };
+
   const playSound = (note) => {
-    console.log(`Sound Engine: Note ${note} played`);
+    const midiNote = notes.indexOf(note) + 60;
+    sendMIDIMessage(midiNote);
   };
 
   const handleKeyPress = useCallback((event) => {
@@ -66,16 +96,15 @@ const Index = () => {
   const playNote = (noteIndex) => {
     const note = notes[(notes.indexOf(lastNote) + noteIndex + 12) % 12];
     setLastNote(note);
-    if (outputType === "SoundEngine") {
+    toast({
+      title: `Note ${note} played`,
+      description: `Output: ${outputType}`,
+      status: "info",
+      duration: 2000,
+      isClosable: true,
+    });
+    if (outputType === "MIDI") {
       playSound(note);
-    } else {
-      toast({
-        title: `Note ${note} played`,
-        description: `Output: ${outputType}`,
-        status: "info",
-        duration: 2000,
-        isClosable: true,
-      });
     }
   };
 
